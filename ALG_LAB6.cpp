@@ -102,7 +102,7 @@ private:
 
 public:
     BinarySearchTree() {
-        this->root = NULL;
+        this->root = nullptr;
     }
 
     void insert_bst(int key) {
@@ -368,6 +368,7 @@ int main() {
             chrono::high_resolution_clock::time_point end1 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff1 = end1 - start1;
             cout << "Time inserting into BST tree: " << sec_diff1.count() << " sec." << endl;
+            auto bst_insert_time = sec_diff1.count() / pow(2, 4);
 
             //inserting into avl
             chrono::high_resolution_clock::time_point start2 = chrono::high_resolution_clock::now();
@@ -377,6 +378,8 @@ int main() {
             chrono::high_resolution_clock::time_point end2 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff2 = end2 - start2;
             cout << "Time inserting into AVL tree: " << sec_diff2.count() << " sec." << endl;
+            auto avl_insert_time = sec_diff2.count() / pow(2, 4);
+
             
             //searching in bst
             chrono::high_resolution_clock::time_point start3 = chrono::high_resolution_clock::now();
@@ -388,6 +391,8 @@ int main() {
             chrono::high_resolution_clock::time_point end3 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff3 = end3 - start3;
             cout << "Time searching in BST tree: " << sec_diff3.count() << " sec." << endl;
+            auto bst_searching_time = sec_diff3.count() / 1000;
+
 
             //searching in avl
             chrono::high_resolution_clock::time_point start4 = chrono::high_resolution_clock::now();
@@ -399,6 +404,8 @@ int main() {
             chrono::high_resolution_clock::time_point end4 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff4 = end4 - start4;
             cout << "Time searching in AVL tree: " << sec_diff4.count() << " sec." << endl;
+            auto avl_searching_time = sec_diff4.count() / 1000;
+
 
             //searching in vector
             chrono::high_resolution_clock::time_point start5 = chrono::high_resolution_clock::now();
@@ -410,6 +417,8 @@ int main() {
             chrono::high_resolution_clock::time_point end5 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff5 = end5 - start5;
             cout << "Time searching in Vector tree: " << sec_diff5.count() << " sec." << endl;
+            auto vector_searching_time = sec_diff5.count() / 1000;
+
 
             //deleting in BST
             chrono::high_resolution_clock::time_point start6 = chrono::high_resolution_clock::now();
@@ -421,6 +430,8 @@ int main() {
             chrono::high_resolution_clock::time_point end6 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff6 = end6 - start6;
             cout << "Time deleting from BST tree: " << sec_diff6.count() << " sec." << endl;
+            auto bst_deleting_time = sec_diff6.count() / 1000;
+
 
             //deleting in AVL
             chrono::high_resolution_clock::time_point start7 = chrono::high_resolution_clock::now();
@@ -432,6 +443,7 @@ int main() {
             chrono::high_resolution_clock::time_point end7 = chrono::high_resolution_clock::now();
             chrono::duration<double> sec_diff7 = end7 - start7;
             cout << "Time deleting from AVL tree: " << sec_diff7.count() << " sec." << endl;
+            auto avl_deleting_time = sec_diff7.count() / 1000;
         }
         cout << endl;
     }
