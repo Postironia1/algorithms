@@ -1,11 +1,17 @@
 #include <iostream>
-#include<vector>
+#include <vector>
+#include <numeric>
+
+
 enum Color { RED, BLACK };
+
 
 struct Node {
     int key;
     Color color;
-    Node* left, * right, * parent;
+    Node* left;
+    Node* right;
+    Node* parent;
 
     Node(int key) {
         this->key = key;
@@ -13,6 +19,7 @@ struct Node {
         left = right = parent = nullptr;
     }
 };
+
 
 class RedBlackTree {
 private:
@@ -216,7 +223,7 @@ public:
             x = y->left;
         else
             x = y->right;
-        if (x == nullptr)// это я вставила, хз правильно ли
+        if (x == nullptr)// это я вставила, вроде работает
             return;
         x->parent = y->parent;
 
@@ -232,6 +239,7 @@ public:
             fixDelete(x);
         delete y;
     }
+    
     int maxDepth(Node* node) {
         if (node == nullptr)
             return 0;
@@ -262,27 +270,45 @@ public:
         allBranchesDepth(root, 0, result);
         return result;
     }
+
+    void allBranchesBlackHeigth(Node* node, int depth, std::vector<int>& result, int blackHeight) {
+        if (node == nullptr)
+            return;
+        if (node->color == BLACK) {
+            blackHeight++;
+        }
+        if (node->left == nullptr && node->right == nullptr) {
+            result.push_back(blackHeight);
+        }
+        else {
+            allBranchesBlackHeigth(node->left, depth + 1, result, blackHeight);
+            allBranchesBlackHeigth(node->right, depth + 1, result, blackHeight);
+        }
+    }
+
+    std::vector<int> getBlackHeigth() {
+        std::vector<int> result;
+        allBranchesBlackHeigth(root, 0, result, 0);
+        return result;
+    }
 };
 
 int main() {
-    RedBlackTree rbt;
-    rbt.insert(10);
-    rbt.insert(20);
-    rbt.insert(30);
-    rbt.insert(15);
-    rbt.insert(25);
-    rbt.insert(35);
-    Node* node = rbt.find(20);
-    if (node != nullptr)
-        std::cout << "Node found with key " << node->key << std::endl;
-    else
-        std::cout << "Node not found" << std::endl;
+    
+    RedBlackTree rbt1;
+    std::vector<int> vector(1000);
+    std::iota(vector.begin(), vector.end(), 1);
+    for (auto& el : vector) 
+        rbt1.insert(el);
 
-    rbt.remove(20);
+    for (auto el : rbt1.getAllBranchesDepth())
+        std::cout << el << " ";
 
-    std::vector<int> branchesDepth = rbt.getAllBranchesDepth();
-    for (int i = 0; i < branchesDepth.size(); i++)
-        std::cout << "Depth of branch " << i + 1 << ": " << branchesDepth[i] << std::endl;
+    std::cout << "------------------------" << std::endl;
+
+    for (auto el : rbt1.getBlackHeigth())
+        std::cout << el << " ";
+    
 
     return 0;
 }
