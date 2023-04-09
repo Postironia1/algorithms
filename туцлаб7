@@ -1,0 +1,289 @@
+#include <iostream>
+#include<vector>
+enum Color { RED, BLACK };
+
+struct Node {
+    int key;
+    Color color;
+    Node* left, * right, * parent;
+
+    Node(int key) {
+        this->key = key;
+        color = RED;
+        left = right = parent = nullptr;
+    }
+};
+
+class RedBlackTree {
+private:
+    Node* root;
+
+    void leftRotate(Node* x) {
+        Node* y = x->right;
+        x->right = y->left;
+        if (y->left != nullptr)
+            y->left->parent = x;
+        y->parent = x->parent;
+        if (x->parent == nullptr)
+            root = y;
+        else if (x == x->parent->left)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+        y->left = x;
+        x->parent = y;
+    }
+
+    void rightRotate(Node* x) {
+        Node* y = x->left;
+        x->left = y->right;
+        if (y->right != nullptr)
+            y->right->parent = x;
+        y->parent = x->parent;
+        if (x->parent == nullptr)
+            root = y;
+        else if (x == x->parent->right)
+            x->parent->right = y;
+        else
+            x->parent->left = y;
+        y->right = x;
+        x->parent = y;
+    }
+
+    void fixInsert(Node* z) {
+        while (z->parent != nullptr && z->parent->color == RED) {
+            if (z->parent == z->parent->parent->left) {
+                Node* y = z->parent->parent->right;
+                if (y != nullptr && y->color == RED) {
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                }
+                else {
+                    if (z == z->parent->right) {
+                        z = z->parent;
+                        leftRotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    rightRotate(z->parent->parent);
+                }
+            }
+            else {
+                Node* y = z->parent->parent->left;
+                if (y != nullptr && y->color == RED) {
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                }
+                else {
+                    if (z == z->parent->left) {
+                        z = z->parent;
+                        rightRotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    leftRotate(z->parent->parent);
+                }
+            }
+        }
+        root->color = BLACK;
+    }
+
+    void transplant(Node* u, Node* v) {
+        if (u->parent == nullptr)
+            root = v;
+        else if (u == u->parent->left)
+            u->parent->left = v;
+        else
+            u->parent->right = v;
+        v->parent = u->parent;
+    }
+
+    Node* minimum(Node* x) {
+        while (x->left != nullptr)
+            x = x->left;
+        return x;
+    }
+
+    void fixDelete(Node* x) {
+        while (x != root && x->color == BLACK) {
+            if (x == x->parent->left) {
+                Node* w = x->parent->right;
+                if (w->color == RED) {
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    leftRotate(x->parent);
+                    w = x->parent->right;
+                }
+                if (w->left->color == BLACK && w->right->color == BLACK) {
+                    w->color = RED;
+                    x = x->parent;
+                }
+                else {
+                    if (w->right->color == BLACK) {
+                        w->left->color = BLACK;
+                        w->color = RED;
+                        rightRotate(w);
+                        w = x->parent->right;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->right->color = BLACK;
+                    leftRotate(x->parent);
+                    x = root;
+                }
+            }
+            else {
+                Node* w = x->parent->left;
+                if (w->color == RED) {
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    rightRotate(x->parent);
+                    w = x->parent->left;
+                }
+                if (w->right->color == BLACK && w->left->color == BLACK) {
+                    w->color = RED;
+                    x = x->parent;
+                }
+                else {
+                    if (w->left->color == BLACK) {
+                        w->right->color = BLACK;
+                        w->color = RED;
+                        leftRotate(w);
+                        w = x->parent->left;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->left->color = BLACK;
+                    rightRotate(x->parent);
+                    x = root;
+                }
+            }
+        }
+        x->color = BLACK;
+    }
+public:
+    RedBlackTree() {
+        root = nullptr;
+    }
+    void insert(int key) {
+        Node* z = new Node(key);
+        Node* y = nullptr;
+        Node* x = root;
+        while (x != nullptr) {
+            y = x;
+            if (z->key < x->key)
+                x = x->left;
+            else
+                x = x->right;
+        }
+        z->parent = y;
+        if (y == nullptr)
+            root = z;
+        else if (z->key < y->key)
+            y->left = z;
+        else
+            y->right = z;
+        fixInsert(z);
+    }
+
+    Node* find(int key) {
+        Node* x = root;
+        while (x != nullptr) {
+            if (key < x->key)
+                x = x->left;
+            else if (key > x->key)
+                x = x->right;
+            else
+                return x;
+        }
+        return nullptr;
+    }
+
+    void remove(int key) {
+        Node* z = find(key);
+        if (z == nullptr)
+            return;
+        Node* x, * y;
+        if (z->left == nullptr || z->right == nullptr)
+            y = z;
+        else
+            y = minimum(z->right);
+        if (y->left != nullptr)
+            x = y->left;
+        else
+            x = y->right;
+        if (x == nullptr)// это я вставила, хз правильно ли
+            return;
+        x->parent = y->parent;
+
+        if (y->parent == nullptr)
+            root = x;
+        else if (y == y->parent->left)
+            y->parent->left = x;
+        else
+            y->parent->right = x;
+        if (y != z)
+            z->key = y->key;
+        if (y->color == BLACK)
+            fixDelete(x);
+        delete y;
+    }
+    int maxDepth(Node* node) {
+        if (node == nullptr)
+            return 0;
+        else {
+            int leftDepth = maxDepth(node->left);
+            int rightDepth = maxDepth(node->right);
+            if (leftDepth > rightDepth)
+                return (leftDepth + 1);
+            else
+                return (rightDepth + 1);
+        }
+    }
+
+    void allBranchesDepth(Node* node, int depth, std::vector<int>& result) {
+        if (node == nullptr)
+            return;
+        if (node->left == nullptr && node->right == nullptr) {
+            result.push_back(depth);
+        }
+        else {
+            allBranchesDepth(node->left, depth + 1, result);
+            allBranchesDepth(node->right, depth + 1, result);
+        }
+    }
+
+    std::vector<int> getAllBranchesDepth() {
+        std::vector<int> result;
+        allBranchesDepth(root, 0, result);
+        return result;
+    }
+};
+
+int main() {
+    RedBlackTree rbt;
+    rbt.insert(10);
+    rbt.insert(20);
+    rbt.insert(30);
+    rbt.insert(15);
+    rbt.insert(25);
+    rbt.insert(35);
+    Node* node = rbt.find(20);
+    if (node != nullptr)
+        std::cout << "Node found with key " << node->key << std::endl;
+    else
+        std::cout << "Node not found" << std::endl;
+
+    rbt.remove(20);
+
+    std::vector<int> branchesDepth = rbt.getAllBranchesDepth();
+    for (int i = 0; i < branchesDepth.size(); i++)
+        std::cout << "Depth of branch " << i + 1 << ": " << branchesDepth[i] << std::endl;
+
+    return 0;
+}
+
