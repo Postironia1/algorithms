@@ -1,0 +1,346 @@
+#include <iostream>
+#include <cstdlib>
+
+enum class Color {
+    red,
+    black
+};
+
+template <typename T>
+class Node {
+public:
+    T data;
+    Node* left;
+    Node* right;
+    Node* parent;
+    Color color;
+
+    Node(const T& data) : data(data), left(nullptr), right(nullptr), parent(nullptr), color(Color::red) {}
+};
+
+template <typename T>
+class RedBlackTree {
+private:
+    Node<T>* root;
+
+    /**
+    * Rotates the given node x to the left in the red-black tree.
+    * @param x The node to rotate left.
+    */
+    void rotate_left(Node<T>* x) {
+        Node<T>* y = x->right;
+        x->right = y->left;
+        if (y->left != nullptr) {
+            y->left->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->left) {
+            x->parent->left = y;
+        }
+        else {
+            x->parent->right = y;
+        }
+        y->left = x;
+        x->parent = y;
+    }
+
+    /**
+    * Rotates the given node x to the right in the red-black tree.
+    * @param x The node to rotate right.
+    */
+    void rotate_right(Node<T>* x) {
+        Node<T>* y = x->left;
+        x->left = y->right;
+        if (y->right != nullptr) {
+            y->right->parent = x;
+        }
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->right) {
+            x->parent->right = y;
+        }
+        else {
+            x->parent->left = y;
+        }
+        y->right = x;
+        x->parent = y;
+    }
+
+    /**
+    * Performs a fixup on the Red-Black tree after a node has been inserted.
+    *
+    * @param z The newly inserted node.
+    */
+    void insert_fixup(Node<T>* z) {
+        // While the parent of the newly inserted node is red
+        while (z->parent != nullptr && z->parent->color == Color::red) {
+            // If the parent of the newly inserted node is the left child of its grandparent
+            if (z->parent == z->parent->parent->left) {
+                Node<T>* y = z->parent->parent->right;
+                // If the uncle of the newly inserted node is red
+                if (y != nullptr && y->color == Color::red) {
+                    // Case 1: Recolor the parent and uncle to black, grandparent to red and move z up to its grandparent
+                    z->parent->color = Color::black;
+                    y->color = Color::black;
+                    z->parent->parent->color = Color::red;
+                    z = z->parent->parent;
+                }
+                else {
+                    // If the uncle of the newly inserted node is black
+                    if (z == z->parent->right) {
+                        // Case 2: If z is the right child, make it the left child and rotate left
+                        z = z->parent;
+                        rotate_left(z);
+                    }
+                    // Case 3: Recolor the parent to black, grandparent to red and rotate right
+                    z->parent->color = Color::black;
+                    z->parent->parent->color = Color::red;
+                    rotate_right(z->parent->parent);
+                }
+            }
+            // If the parent of the newly inserted node is the right child of its grandparent
+            else {
+                Node<T>* y = z->parent->parent->left;
+                // If the uncle of the newly inserted node is red
+                if (y != nullptr && y->color == Color::red) {
+                    // Case 1: Recolor the parent and uncle to black, grandparent to red and move z up to its grandparent
+                    z->parent->color = Color::black;
+                    y->color = Color::black;
+                    z->parent->parent->color = Color::red;
+                    z = z->parent->parent;
+                }
+                else {
+                    // If the uncle of the newly inserted node is black
+                    if (z == z->parent->left) {
+                        // Case 2: If z is the left child, make it the right child and rotate right
+                        z = z->parent;
+                        rotate_right(z);
+                    }
+                    // Case 3: Recolor the parent to black, grandparent to red and rotate left
+                    z->parent->color = Color::black;
+                    z->parent->parent->color = Color::red;
+                    rotate_left(z->parent->parent);
+                }
+            }
+        }
+        // Color the root node black
+        root->color = Color::black;
+    }
+
+    //void transplant(Node<T>* u, Node<T>* v) {
+    //    if (u->parent == nullptr) {
+    //        root = v;
+    //    }
+    //    else if (u == u->parent->left) {
+    //        u->parent->left = v;
+    //    }
+    //    else {
+    //        u->parent->right = v;
+    //    }
+    //    v->parent = u->parent;
+    //}
+
+    /**
+    * delete_fixup - Restores red-black tree properties after deleting a node
+    * @param x: The node to start the fixup from
+    */
+    void delete_fixup(Node<T>* x) {
+        // Continue fixing up until we've reached the root or a red node
+        while (x != root && x->color == Color::black) {
+            // If x is a left child
+            if (x == x->parent->left) {
+                // Set w to x's sibling
+                Node<T>* w = x->parent->right;
+                // Case 1: w is red
+                if (w->color == Color::red) {
+                    w->color = Color::black;
+                    x->parent->color = Color::red;
+                    rotate_left(x->parent);
+                    w = x->parent->right;
+                }
+                // Case 2: both of w's children are black
+                if (w->left->color == Color::black && w->right->color == Color::black) {
+                    w->color = Color::red;
+                    x = x->parent;
+                }
+                else {
+                    // Case 3: w's right child is black and left child is red
+                    if (w->right->color == Color::black) {
+                        w->left->color = Color::black;
+                        w->color = Color::red;
+                        rotate_right(w);
+                        w = x->parent->right;
+                    }
+                    // Case 4: w's right child is red
+                    w->color = x->parent->color;
+                    x->parent->color = Color::black;
+                    w->right->color = Color::black;
+                    rotate_left(x->parent);
+                    x = root;
+                }
+            }
+            // If x is a right child (symmetric to left child case)
+            else {
+                Node<T>* w = x->parent->left;
+                if (w->color == Color::red) {
+                    w->color = Color::black;
+                    x->parent->color = Color::red;
+                    rotate_right(x->parent);
+                    w = x->parent->left;
+                }
+                if (w->right->color == Color::black && w->left->color == Color::black) {
+                    w->color = Color::red;
+                    x = x->parent;
+                }
+                else {
+                    if (w->left->color == Color::black) {
+                        w->right->color = Color::black;
+                        w->color = Color::red;
+                        rotate_left(w);
+                        w = x->parent->left;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = Color::black;
+                    w->left->color = Color::black;
+                    rotate_right(x->parent);
+                    x = root;
+                }
+            }
+        }
+        // Set the root to black
+        x->color = Color::black;
+    }
+
+    /**
+    * Transplants the subtree rooted at node v in place of the subtree rooted at node u
+    *
+    * @param u The node whose subtree is to be replaced
+    * @param v The root node of the subtree that will replace u's subtree
+    */
+    void transplant(Node<T>* u, Node<T>* v) {
+        if (u->parent == nullptr) {
+            root = v;
+        }
+        else if (u == u->parent->left) {
+            u->parent->left = v;
+        }
+        else {
+            u->parent->right = v;
+        }
+        if (v != nullptr) {
+            v->parent = u->parent;
+        }
+    }
+
+    /**
+    * Finds and returns the minimum node in the subtree rooted at the given node
+    *
+    * @param x The root node of the subtree to search for the minimum node
+    * @return The node with the smallest value in the subtree rooted at x
+    */
+    Node<T>* minimum(Node<T>* x) {
+        while (x->left != nullptr) {
+            x = x->left;
+        }
+        return x;
+    }
+public:
+    RedBlackTree() : root(nullptr) {}
+    void insert(const T& data) {
+        Node<T>* z = new Node<T>(data);
+        Node<T>* y = nullptr;
+        Node<T>* x = root;
+
+        while (x != nullptr) {
+            y = x;
+            if (z->data < x->data) {
+                x = x->left;
+            }
+            else {
+                x = x->right;
+            }
+        }
+        z->parent = y;
+        if (y == nullptr) {
+            root = z;
+        }
+        else if (z->data < y->data) {
+            y->left = z;
+        }
+        else {
+            y->right = z;
+        }
+        z->left = nullptr;
+        z->right = nullptr;
+        z->color = Color::red;
+        insert_fixup(z);
+    }
+    bool erase(const T& data) {
+        Node<T>* z = search(data);
+        if (z == nullptr) {
+            return false;
+        }
+        Node<T>* y = z;
+        Node<T>* x = nullptr;
+        Color y_original_color = y->color;
+        if (z->left == nullptr) {
+            x = z->right;
+            transplant(z, z->right);
+        }
+        else if (z->right == nullptr) {
+            x = z->left;
+            transplant(z, z->left);
+        }
+        else {
+            y = minimum(z->right);
+            y_original_color = y->color;
+            x = y->right;
+            if (y->parent == z) {
+                x->parent = y;
+            }
+            else {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->parent = y;
+            }
+            transplant(z, y);
+            y->left = z->left;
+            y->left->parent = y;
+            y->color = z->color;
+        }
+        if (y_original_color == Color::black) {
+            delete_fixup(x);
+        }
+        delete z;
+        return true;
+    }
+
+    bool find(const T& data) const {
+        return search(data) != nullptr;
+    }
+
+    void clear() {
+        delete_subtree(root);
+        root = nullptr;
+    }
+
+    bool empty() const {
+        return root == nullptr;
+    }
+
+    ~RedBlackTree() {
+        clear();
+    }
+};
+
+
+
+int main() {
+
+    return EXIT_SUCCESS;
+}
